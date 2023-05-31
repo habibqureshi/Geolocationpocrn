@@ -1,16 +1,26 @@
 import React, {useEffect, useState} from 'react';
 import BackgroundGeolocation from 'react-native-background-geolocation';
-import {Alert, View, Button, SafeAreaView} from 'react-native';
-import notifee, {AndroidImportance} from '@notifee/react-native';
+import {Button, SafeAreaView} from 'react-native';
+import DisplayNotification from './components/DisplayNotification';
+import getLatLong from './helper/getLatLong';
 const App = () => {
+  const [geofenceLocation, setGeofenceLocation] = useState(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      const fetchedData = await getLatLong();
+      setGeofenceLocation(fetchedData._data);
+    };
+    fetchData();
+  }, []);
   const onStart = () => {
     // Configure geofence settings
     BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       distanceFilter: 20,
-      debug: false,
+      debug: true,
       startOnBoot: false,
-      stopOnTerminate: true,
+      enableHeadless: true,
+      stopOnTerminate: false,
       locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
       interval: 10000,
       fastestInterval: 5000,
@@ -23,12 +33,11 @@ const App = () => {
     const geofence = {
       identifier: 'MyGeofence',
       radius: 500,
-      latitude: 31.467176431705678,
-      longitude: 74.2519590719575,
+      latitude: geofenceLocation?.lat,
+      longitude: geofenceLocation?.long,
       notifyOnEntry: true,
       notifyOnExit: true,
     };
-
     // Add the geofence
     BackgroundGeolocation.addGeofence(geofence, () => {
       console.log('Geofence added successfully.');
@@ -36,14 +45,15 @@ const App = () => {
 
     // Event listener for geofence entry
     BackgroundGeolocation.onGeofence(event => {
+      console.log('set', event);
       if (event.action === 'ENTER') {
         console.log('inside the radius', event);
-        showNotification(
+        DisplayNotification(
           'Enter Notification',
           'You have entered the target location.',
         );
       } else if (event.action === 'EXIT') {
-        showNotification(
+        DisplayNotification(
           'Exit Notification',
           'You have left the target location.',
         );
@@ -55,41 +65,16 @@ const App = () => {
     BackgroundGeolocation.start();
   };
 
-  const showNotification = async (title, message) => {
-    // Display a notification when entering the geofence
-    // Request permissions (required for iOS)
-    await notifee.requestPermission();
-    // Create a channel (required for Android)
-    const channelId = await notifee.createChannel({
-      id: 'important',
-      name: 'Important Notifications',
-      importance: AndroidImportance.HIGH,
-    });
-
-    // Display a notification
-    await notifee.displayNotification({
-      title: title,
-      body: message,
-      android: {
-        importance: AndroidImportance.HIGH,
-        channelId,
-        pressAction: {
-          id: 'default',
-        },
-      },
-    });
-  };
-  useEffect(() => {
-    return () => {
-      // Clean up geofence and stop tracking on component unmount
-      BackgroundGeolocation.removeGeofence();
-      BackgroundGeolocation.stop();
-    };
-  }, []);
-
   return (
     <SafeAreaView>
       <Button title="Start" onPress={() => onStart()} />
+      <Button
+        title="End"
+        onPress={() => {
+          BackgroundGeolocation.removeGeofence();
+          BackgroundGeolocation.stop();
+        }}
+      />
     </SafeAreaView>
   );
 };

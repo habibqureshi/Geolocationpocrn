@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "950020393359",
+    "project_id": "geolocation-geofence",
+    "storage_bucket": "geolocation-geofence.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:950020393359:android:07dc4cb2c2a93ee8f8e3fa",
+        "android_client_info": {
+          "package_name": "com.geolocation"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSyceIcDqyOt2v4l8vufJYkpY8bl6S09Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
